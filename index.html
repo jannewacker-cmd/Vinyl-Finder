@@ -1,0 +1,40 @@
+ <!DOCTYPE html>
+  <html lang="de">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <title>Vinyl Finder</title>
+      <link rel="stylesheet" href="style.css">
+      <link rel="manifest" href="manifest.json">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  </head>
+  <body>
+      <div id="app">
+          <header>
+              <h1>Vinyl Finder</h1>
+          </header>
+
+          <main>
+              <div class="camera-container">
+                  <video id="video" autoplay playsinline></video>
+                  <canvas id="canvas" style="display:none;"></canvas>
+                  <div id="photo-preview"></div>
+              </div>
+
+              <div class="controls">
+                  <button id="capture-btn">
+                      <div class="inner-circle"></div>
+                  </button>
+                  <p>Tippe zum Abnehmen</p>
+              </div>
+          </main>
+
+          <div id="status-area">
+              <p id="status-text">Bereit zum Scannen...</p>
+          </div>
+      </div>
+      <script src="script.js"></script>
+  </body>
+  </html>

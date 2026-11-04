@@ -1,0 +1,16 @@
+{
+    "name": "Vinyl Finder",
+    "short_name": "VinylFinder",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#1a1a1a",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "icon.png",
+        "sizes": "1024x1024",
+        "type": "image/png"
+      }
+    ]
+  }
