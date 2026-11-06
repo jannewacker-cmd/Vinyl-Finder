@@ -12,15 +12,13 @@ const video = document.getElementById('video');
   async function initCamera() {
       try {
           const stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                  facingMode: 'environment'
-              },
+              video: { facingMode: 'environment' },
               audio: false
           });
           video.srcObject = stream;
           statusText.innerText = "Bereit zum Scannen...";
       } catch (err) {
-          console.error("Fehler beim Zugriff auf die Kamera:", err);
+          console.error(err);
           statusText.innerText = "Kamera-Berechtigung erforderlich.";
       }
   }
@@ -33,27 +31,21 @@ const video = document.getElementById('video');
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Wir brauchen das Bild im Base64 Format für die KI
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      photoPreview.innerHTML = `<img src="${dataUrl}" />`;
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Etwas kleinere Datei
+      photoPreview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; border-radius:10px;" />`;
 
       statusText.innerText = "KI analysiert das Cover...";
-
-      // Sende das Bild zur Analyse
       processImage(dataUrl);
   });
 
-  // 3. Die "Intelligenz" - Senden an Gemini
+  // 3. Die "Intelligenz"
   async function processImage(dataUrl) {
       try {
-          // Wir müssen das "data:image/jpeg;base64," Präfix entfernen
           const base64Data = dataUrl.split(',')[1];
 
           const response = await fetch(API_URL, {
               method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                   contents: [{
                       parts: [{
@@ -68,22 +60,44 @@ const video = document.getElementById('video');
               })
           });
 
+          if (!response.ok) {
+              throw new Error(`Server antwortete mit Fehler: ${response.status}`);
+          }
+
           const result = await response.json();
           const identifiedText = result.candidates[0].content.parts[0].text.trim();
 
-          console.log("Ergebnis:", identifiedText);
           statusText.innerText = `Gefunden: ${identifiedText}`;
 
-          // Öffne Apple Music Suche
-          // Wir nutzen die Apple Music Suche über eine URL
-          const searchUrl = `https://music.apple.com/search?q=${encodeURIComponent(identifiedText)}`;
-          window.open(searchUrl, '_blank');
+          // Statt automatisch zu öffnen, erstellen wir einen Button
+          renderSearchButton(identifiedText);
 
       } catch (error) {
-          console.error("Fehler bei der Analyse:", error);
-          statusText.innerText = "Fehler bei der Erkennung. Versuch es nochmal.";
+          console.error("Fehler:", error);
+          statusText.innerText = "Fehler: " + error.message;
       }
   }
 
-  // Starte Kamera
+  // Funktion zum Erstellen des Buttons
+  function renderSearchButton(query) {
+      const button = document.createElement('button');
+      button.innerText = "Zu Apple Music Suche";
+      button.style.marginTop = "20px";
+      button.style.padding = "15px";
+      button.style.backgroundColor = "#e63946";
+      button.style.color = "white";
+      button.style.border = "none";
+      button.style.borderRadius = "10px";
+      button.style.fontSize = "1.1rem";
+
+      button.onclick = () => {
+          const searchUrl = `https://music.apple.com/search?q=${encodeURIComponent(query)}`;
+          window.open(searchUrl, '_blank');
+      };
+
+      // Entferne das alte Status-Text-Element und füge den Button ein
+      statusText.parentElement.appendChild(button);
+      // Wir fügen den Button hinzu, aber halten den Text auch
+  }
+
   initCamera();
