@@ -1,4 +1,4 @@
-const video = document.getElementById('video');
+  const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const captureBtn = document.getElementById('capture-btn');
   const photoPreview = document.getElementById('photo-preview');
@@ -25,23 +25,35 @@ const video = document.getElementById('video');
 
   // 2. Foto aufnehmen
   captureBtn.addEventListener('click', () => {
+      statusText.innerText = "Erfasse Foto...";
       const context = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Etwas kleinere Datei
+      // Wir reduzieren die Qualität massiv, damit das Bild klein genug für die mobile Leitung ist
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.3); // 30% Qualität
       photoPreview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; border-radius:10px;" />`;
 
-      statusText.innerText = "KI analysiert das Cover...";
-      processImage(dataUrl);
+      statusText.innerText = "Bild erstellt. Sende an KI...";
+
+      // Kurze Verzögerung, damit das UI aktualisiert wird
+      setTimeout(() => {
+          processImage(dataUrl);
+      }, 500);
   });
 
   // 3. Die "Intelligenz"
   async function processImage(dataUrl) {
       try {
+          statusText.innerText = "Sende Daten an Google...";
+
+          // Extrahiere das Base64
           const base64Data = dataUrl.split(',')[1];
+
+          // Wir loggen die Datenlänge zur Kontrolle
+          console.log("Datenlänge gesendet:", base64Data.length);
 
           const response = await fetch(API_URL, {
               method: 'POST',
@@ -61,43 +73,37 @@ const video = document.getElementById('video');
           });
 
           if (!response.ok) {
-              throw new Error(`Server antwortete mit Fehler: ${response.status}`);
+              const errorText = await response.text();
+              throw new Error(`Server Fehler (${response.status}): ${errorText}`);
           }
 
           const result = await response.json();
           const identifiedText = result.candidates[0].content.parts[0].text.trim();
 
           statusText.innerText = `Gefunden: ${identifiedText}`;
-
-          // Statt automatisch zu öffnen, erstellen wir einen Button
           renderSearchButton(identifiedText);
 
       } catch (error) {
-          console.error("Fehler:", error);
+          console.error("Fehler im Detail:", error);
           statusText.innerText = "Fehler: " + error.message;
       }
   }
 
-  // Funktion zum Erstellen des Buttons
   function renderSearchButton(query) {
+      // Entferne alte Buttons falls vorhanden
+      const oldButtons = document.querySelectorAll('button');
+      oldButtons.forEach(btn => btn.remove());
+
       const button = document.createElement('button');
       button.innerText = "Zu Apple Music Suche";
-      button.style.marginTop = "20px";
-      button.style.padding = "15px";
-      button.style.backgroundColor = "#e63946";
-      button.style.color = "white";
-      button.style.border = "none";
-      button.style.borderRadius = "10px";
-      button.style.fontSize = "1.1rem";
+      button.style.cssText = "margin-top:20px; padding:15px; background-color:#e63946; color:white; border:none; border-radius:10px; font-size:1.1rem;";
 
       button.onclick = () => {
           const searchUrl = `https://music.apple.com/search?q=${encodeURIComponent(query)}`;
           window.open(searchUrl, '_blank');
       };
 
-      // Entferne das alte Status-Text-Element und füge den Button ein
       statusText.parentElement.appendChild(button);
-      // Wir fügen den Button hinzu, aber halten den Text auch
   }
 
   initCamera();
